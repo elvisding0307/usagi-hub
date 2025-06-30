@@ -2,32 +2,36 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Eye, EyeOff, Lock, User, Shield } from 'lucide-react';
+import { Eye, EyeOff, Lock, User, Shield, AlertCircle } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function AdminLoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
-    username: 'root',
-    password: '123456'
+    username: '',
+    password: '',
+    rememberMe: false
   });
-  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+  
+  const { login, isLoading } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
+    setError('');
     
-    // 模拟登录请求
-    setTimeout(() => {
-      setIsLoading(false);
-      // 这里应该处理实际的登录逻辑
-      window.location.href = '/admin/dashboard';
-    }, 1000);
+    try {
+      await login(formData.username, formData.password, formData.rememberMe);
+    } catch (err: any) {
+      setError(err.message || '登录失败，请重试');
+    }
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value, type, checked } = e.target;
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [name]: type === 'checkbox' ? checked : value
     });
   };
 
@@ -45,6 +49,14 @@ export default function AdminLoginPage() {
 
         {/* 登录表单 */}
         <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 border border-white/20">
+          {/* 错误提示 */}
+          {error && (
+            <div className="mb-4 p-3 bg-red-500/20 border border-red-500/50 rounded-lg flex items-center space-x-2">
+              <AlertCircle className="h-5 w-5 text-red-400" />
+              <span className="text-red-300 text-sm">{error}</span>
+            </div>
+          )}
+
           <form className="space-y-6" onSubmit={handleSubmit}>
             {/* 用户名输入 */}
             <div>
@@ -63,7 +75,7 @@ export default function AdminLoginPage() {
                   value={formData.username}
                   onChange={handleInputChange}
                   className="block w-full pl-10 pr-3 py-3 border border-gray-600 rounded-lg bg-gray-800/50 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
-                  placeholder="请输入用户名"
+                  placeholder="请输入用户名或邮箱"
                 />
               </div>
             </div>
@@ -105,13 +117,15 @@ export default function AdminLoginPage() {
             <div className="flex items-center justify-between">
               <div className="flex items-center">
                 <input
-                  id="remember-me"
-                  name="remember-me"
+                  id="rememberMe"
+                  name="rememberMe"
                   type="checkbox"
+                  checked={formData.rememberMe}
+                  onChange={handleInputChange}
                   className="h-4 w-4 text-amber-600 focus:ring-amber-500 border-gray-600 rounded bg-gray-800"
                 />
-                <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-300">
-                  记住我
+                <label htmlFor="rememberMe" className="ml-2 block text-sm text-gray-300">
+                  记住我 (30天)
                 </label>
               </div>
               <div className="text-sm">
@@ -139,6 +153,13 @@ export default function AdminLoginPage() {
               </button>
             </div>
           </form>
+
+          {/* 测试账号提示 */}
+          <div className="mt-6 p-3 bg-blue-500/20 border border-blue-500/50 rounded-lg">
+            <p className="text-blue-300 text-sm text-center">
+              测试账号：admin / password
+            </p>
+          </div>
 
           {/* 底部链接 */}
           <div className="mt-6 text-center">

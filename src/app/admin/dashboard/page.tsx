@@ -106,7 +106,7 @@ export default function AdminDashboard() {
 
   return (
     <AdminLayout>
-      <div className="space-y-8">
+      <div className="space-y-8 p-6">
         {/* 页面标题 */}
         <div>
           <h1 className="text-2xl font-bold text-gray-900">仪表板</h1>
